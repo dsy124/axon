@@ -5,6 +5,7 @@ mod native_token;
 
 pub use crate::system_contract::image_cell::ImageCellContract;
 pub use crate::system_contract::native_token::NativeTokenContract;
+pub use crate::system_contract::metadata::MetadataContract;
 
 use protocol::traits::{ApplyBackend, Backend};
 use protocol::types::{ExitReason, ExitRevert, ExitSucceed, SignedTransaction, TxResp, H160, U256};
@@ -42,9 +43,11 @@ pub fn system_contract_dispatch<B: Backend + ApplyBackend>(
     if let Some(addr) = tx.get_to() {
         if addr == NativeTokenContract::ADDRESS {
             return Some(NativeTokenContract::default().exec_(backend, tx));
+        } else if addr == MetadataContract::ADDRESS {
+            return Some(MetadataContract::default().exec_(backend, tx));
         } else if addr == ImageCellContract::ADDRESS {
             return Some(ImageCellContract::default().exec_(backend, tx));
-        }
+        } 
     }
 
     None
@@ -68,7 +71,7 @@ pub fn succeed_resp(gas_limit: U256) -> TxResp {
         exit_reason:  ExitReason::Succeed(ExitSucceed::Returned),
         ret:          vec![],
         gas_used:     1u64,
-        remain_gas:   gas_limit.as_u64() - 1,
+        remain_gas:   (gas_limit - 1).as_u64(),
         fee_cost:     U256::one(),
         logs:         vec![],
         code_address: None,
